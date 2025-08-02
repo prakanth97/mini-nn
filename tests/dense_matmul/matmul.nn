@@ -1,0 +1,8 @@
+# Y = X * W^T + b
+
+func model(float[10] input, float[5][10] weight, float[5] bias) return float[5] {
+    wt = transpose(weight);
+    y = matmul(input, wt)
+    y = add(y, bias);
+    return y;
+}

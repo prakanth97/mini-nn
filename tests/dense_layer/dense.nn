@@ -1,0 +1,12 @@
+# Y = X * W^T + b
+
+layer dense1 = dense(10, 5);
+layer dense2 = dense(5, 1);
+
+func model(float[10] input) return float[5] {
+    y = dense1(input);
+    y = relu(y);
+    y = dense2(y);
+    y = sigmoid(y);
+    return y;
+}

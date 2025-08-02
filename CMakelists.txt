@@ -1,0 +1,101 @@
+cmake_minimum_required(VERSION 3.20.0)
+project(Mini-NN)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find LLVM/MLIR installation
+# Allow override via environment variable or command line
+if(NOT DEFINED LLVM_ROOT)
+    message(STATUS, "LLVM_ROOT is not defined")
+endif()
+
+set(LLVM_DIR "${LLVM_ROOT}/lib/cmake/llvm")
+set(MLIR_DIR "${LLVM_ROOT}/lib/cmake/mlir")
+
+find_package(LLVM REQUIRED CONFIG)
+find_package(MLIR REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "Found MLIR ${MLIR_PACKAGE_VERSION}")
+message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
+
+# Set the LLVM header and library paths
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+include(TableGen)
+include(AddLLVM)
+include(AddMLIR)
+include(HandleLLVMOptions)
+
+# Include directories
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
+
+# Add definitions
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+
+include(AddFileDependencies)
+
+# Define MLIR libraries that are commonly needed
+set(MLIR_LIBS
+    MLIRAnalysis
+    MLIRBuiltinToLLVMIRTranslation
+    MLIRCallInterfaces
+    MLIRCastInterfaces
+    MLIRExecutionEngine
+    MLIRFunctionInterfaces
+    MLIRIR
+    MLIRLLVMCommonConversion
+    MLIRLLVMToLLVMIRTranslation
+    MLIRMemRefDialect
+    MLIRParser
+    MLIRPass
+    MLIRSideEffectInterfaces
+    MLIRSupport
+    MLIRTargetLLVMIRExport
+    MLIRTransforms
+)
+
+# Remove any potential duplicates
+list(REMOVE_DUPLICATES MLIR_LIBS)
+
+# Add your source files
+add_library(mini_nn
+    src/mini_nn.cpp
+)
+
+# Add dialect library
+add_library(nn_dialect SHARED
+    src/dialect/nn_dialect.cpp
+)
+
+# Add parser library
+add_library(nn_parser SHARED
+    src/parser/ast.cpp
+    src/parser/parser.cpp
+)
+
+# Define LLVM libraries
+llvm_map_components_to_libnames(LLVM_LIBS
+    Core
+    Support
+    Target
+)
+
+# Link libraries with proper dependency management
+target_link_libraries(nn_dialect ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(nn_parser ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(mini_nn nn_dialect nn_parser)
+
+# Add test executables
+add_executable(dense_test tests/dense_layer/driver.cpp)
+add_executable(matmul_test tests/dense_matmul/driver.cpp)
+
+# Link test executables - they only need the main library
+target_link_libraries(dense_test mini_nn ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(matmul_test mini_nn ${MLIR_LIBS} ${LLVM_LIBS})
