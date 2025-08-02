@@ -65,7 +65,7 @@ set(MLIR_LIBS
 list(REMOVE_DUPLICATES MLIR_LIBS)
 
 # Add your source files
-add_library(mini_nn
+add_executable(mini_nn
     src/mini_nn.cpp
 )
 
@@ -89,7 +89,6 @@ llvm_map_components_to_libnames(LLVM_LIBS
 
 # Link libraries with proper dependency management
 target_link_libraries(nn_dialect ${MLIR_LIBS} ${LLVM_LIBS})
-target_link_libraries(nn_parser ${MLIR_LIBS} ${LLVM_LIBS})
 target_link_libraries(mini_nn nn_dialect nn_parser)
 
 # Add test executables
@@ -97,5 +96,5 @@ add_executable(dense_test tests/dense_layer/driver.cpp)
 add_executable(matmul_test tests/dense_matmul/driver.cpp)
 
 # Link test executables - they only need the main library
-target_link_libraries(dense_test mini_nn ${MLIR_LIBS} ${LLVM_LIBS})
-target_link_libraries(matmul_test mini_nn ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(dense_test ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(matmul_test ${MLIR_LIBS} ${LLVM_LIBS})
