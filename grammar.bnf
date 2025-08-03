@@ -1,7 +1,9 @@
 program ::= statement_list
 
-statement_list ::= statement
-                | statement statement_list
+statement_list ::= statement statement_list_prime
+
+statement_list_prime ::= statement statement_list_prime
+                     | ε
 
 statement ::= comment 
             | layer_definition 
@@ -21,24 +23,26 @@ layer_type ::= "dense"
 
 function_definition ::= "func" IDENT "(" parameter_list ")" "return" type "{" function_body "}"
 
-function_body ::= statement_list_in_function
+function_body ::= function_statement_list 
 
-statement_list_in_function ::= function_statement 
-                            | function_statement statement_list_in_function
+function_statement_list ::= function_statement function_statement_list_prime 
+
+function_statement_list_prime ::= function_statement function_statement_list_prime
+                                | ε
 
 function_statement ::= assignment 
                     | return_statement
 
-assignment ::= IDENT "=" <expression> ";" 
-            | IDENT "=" <expression>
+assignment ::= IDENT "=" expression ";" 
+            | IDENT "=" expression
 
-return_statement ::= "return" <expression> ";"
+return_statement ::= "return" expression ";"
 
-expression ::= IDENT 
-            | function_call
-            | builtin_call
+expression ::= IDENT expression_suffix
+            | builtin_function "(" argument_list ")"
 
-builtin_call ::= builtin_function "(" argument_list ")"
+expression_suffix ::= "(" argument_list ")"
+                   | ε
 
 builtin_function ::= "transpose" 
                     | "matmul" 
@@ -48,44 +52,38 @@ builtin_function ::= "transpose"
                     | "tanh" 
                     | "softmax"
 
-function_call ::= IDENT "(" argument_list ")"
+parameter_list ::= parameter parameter_list_prime
 
-parameter_list ::= parameter 
-                | parameter "," parameter_list 
-                | ε
+parameter_list_prime ::= "," parameter parameter_list_prime
+                     | ε
 
 parameter ::= type IDENT 
             | number
 
-argument_list ::= expression 
-                | expression "," argument_list 
-                | ε
+argument_list ::= expression argument_list_prime
 
-type ::= primitive_type 
-        | array_type 
-        | multi_dim_array_type
+argument_list_prime ::= "," expression argument_list_prime
+                    | ε
+
+type ::= primitive_type type_suffix
+
+type_suffix ::= "[" number "]" type_suffix
+             | ε
 
 primitive_type ::= "float" 
                 | "int" 
                 | "bool"
 
-array_type ::= primitive_type "[" number "]"
+number ::= digit number_prime
 
-multi_dim_array_type ::= primitive_type dimension_list
-
-dimension_list ::= "[" number "]" dimension_list 
-                | "[" number "]"
-
-number ::= digit number_rest
-
-number_rest ::= digit number_rest | ε
+number_prime ::= digit number_prime | ε
 
 letter ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
 
 digit ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 
-IDENT ::= letter ident_rest
+IDENT ::= letter ident_prime
 
-ident_rest ::= letter ident_rest | digit ident_rest | ε
+ident_prime ::= letter ident_prime | digit ident_prime | ε
 
 any_char ::= letter | digit | " " | "=" | "*" | "+" | "^" | "T" | "(" | ")" | "[" | "]" | "," | "."
