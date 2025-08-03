@@ -76,7 +76,11 @@ add_library(nn_dialect SHARED
 
 # Add parser library
 add_library(nn_parser SHARED
+    src/parser/lexer.h
+    src/parser/lexer.cpp
+    src/parser/ast.h
     src/parser/ast.cpp
+    src/parser/parser.h
     src/parser/parser.cpp
 )
 
@@ -96,5 +100,5 @@ add_executable(dense_test tests/dense_layer/driver.cpp)
 add_executable(matmul_test tests/dense_matmul/driver.cpp)
 
 # Link test executables - they only need the main library
-target_link_libraries(dense_test ${MLIR_LIBS} ${LLVM_LIBS})
-target_link_libraries(matmul_test ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(dense_test nn_parser nn_dialect)
+target_link_libraries(matmul_test nn_parser nn_dialect)

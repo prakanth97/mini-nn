@@ -1,4 +1,7 @@
+#include <cstdio>
 #include <string>
+
+extern FILE *pFile; // Global file pointer for the lexer (defined in lexer.cpp)
 
 // The lexer returns one of these for known things.
 enum TOKEN_TYPE {
@@ -25,6 +28,7 @@ enum TOKEN_TYPE {
 
   // keywords
   RETURN = -10, // "return"
+  FUNC_TOK = -11, // "func"
 
   // literals
   INT_LIT = -14,   // [0-9]+
@@ -78,5 +82,5 @@ public:
   bool getBoolVal() const;
 };
 
-static TOKEN getKeywordOrIdentToken();
-static TOKEN getTok();
+TOKEN getKeywordOrIdentToken();
+TOKEN getTok();

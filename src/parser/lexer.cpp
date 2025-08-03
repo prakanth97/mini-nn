@@ -7,7 +7,7 @@
 
 #include "lexer.h"
 
-FILE *pFile;
+FILE *pFile; // Global file pointer for the lexer
 
 //===----------------------------------------------------------------------===//
 // Lexer
@@ -64,7 +64,7 @@ static TOKEN returnTok(std::string lexVal, int tok_type) {
 // Read file line by line -- or look for \n and if found add 1 to line number
 // and reset column number to 0
 /// gettok - Return the next token from standard input.
-static TOKEN getTok() {
+TOKEN getTok() {
 
   static int LastChar = ' ';
   static int NextChar = ' ';
@@ -216,7 +216,9 @@ static bool isLayerType(const std::string &lexeme) {
 	return (lexeme == "dense" || lexeme == "conv1d" || lexeme == "conv2d");
 }
 
-static TOKEN getKeywordOrIdentToken() {	
+TOKEN getKeywordOrIdentToken() {	
+  if (globalLexeme == "func")
+    return returnTok("func", FUNC_TOK);
 	if (globalLexeme == "int")
 		return returnTok("int", INT_TOK);
 	if (globalLexeme == "bool")
@@ -238,7 +240,7 @@ static TOKEN getKeywordOrIdentToken() {
 	if (isLayerType(globalLexeme))
 		return returnTok(globalLexeme.c_str(), LAYER_TOK);
 	if (isBuiltinFunc(globalLexeme))
-		returnTok(globalLexeme.c_str(), BUILTIN_FUNC_TOK);
+		return returnTok(globalLexeme.c_str(), BUILTIN_FUNC_TOK);
 
 	return returnTok(globalLexeme.c_str(), IDENT); // If not a keyword, return as IDENT
 }

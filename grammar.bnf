@@ -40,6 +40,8 @@ return_statement ::= "return" expression ";"
 
 expression ::= IDENT expression_suffix
             | builtin_function "(" argument_list ")"
+            | int_literal
+            | float_literal
 
 expression_suffix ::= "(" argument_list ")"
                    | ε
