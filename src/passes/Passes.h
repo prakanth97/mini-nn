@@ -15,6 +15,7 @@ namespace nn {
 
 // Pass declarations
 std::unique_ptr<mlir::Pass> createShapeInferencePass();
+std::unique_ptr<mlir::Pass> createLowerToLinalgPass();
 
 } // namespace nn
 } // namespace mlir

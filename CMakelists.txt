@@ -67,6 +67,10 @@ set(MLIR_LIBS
     MLIRTblgenLib
     MLIRInferTypeOpInterface
     MLIRSCFDialect
+    MLIRLinalgDialect
+    MLIRTensorDialect
+    MLIRMathDialect
+    MLIRFuncDialect
 )
 
 # Remove any potential duplicates
@@ -89,6 +93,7 @@ add_library(nn_dialect SHARED
     src/dialect/dialect.h.inc
     src/dialect/dialect.cpp.inc
     src/passes/ShapeInferencePass.cpp
+    src/passes/LowerToLinalgDialect.cpp
     src/dialect/MLIRGen.cpp
 )
 

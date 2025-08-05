@@ -2,6 +2,10 @@
 #include <iostream>
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
+#include "mlir/Dialect/Math/IR/Math.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "parser/parser.h"
 #include "dialect/MLIRGen.h"
 #include "dialect/NNDialect.h"
@@ -38,6 +42,10 @@ int main(int argc, char** argv) {
   mlir::MLIRContext context;
   context.getOrLoadDialect<mlir::nn::NNDialect>();
   context.getOrLoadDialect<mlir::arith::ArithDialect>();
+  context.getOrLoadDialect<mlir::linalg::LinalgDialect>();
+  context.getOrLoadDialect<mlir::tensor::TensorDialect>();
+  context.getOrLoadDialect<mlir::math::MathDialect>();
+  context.getOrLoadDialect<mlir::func::FuncDialect>();
   
   // Generate MLIR from AST
   auto module = mlir::nn::mlirGen(context, *program);
@@ -63,6 +71,20 @@ int main(int argc, char** argv) {
   }
   
   std::cout << "\n=== MLIR (After Shape Inference) ===\n";
+  module->print(llvm::outs());
+  std::cout << std::endl;
+  
+  // Add lowering to Linalg pass
+  mlir::PassManager loweringPM(&context);
+  loweringPM.addPass(mlir::nn::createLowerToLinalgPass());
+  
+  // Run the lowering pass
+  if (mlir::failed(loweringPM.run(*module))) {
+    std::cerr << "Failed to run lowering pass" << std::endl;
+    return 1;
+  }
+  
+  std::cout << "\n=== MLIR (After Lowering to Linalg) ===\n";
   module->print(llvm::outs());
   std::cout << std::endl;
   
