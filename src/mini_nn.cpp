@@ -5,12 +5,11 @@
 #include "parser/parser.h"
 #include "dialect/MLIRGen.h"
 #include "dialect/NNDialect.h"
+#include "dialect/Passes.h"
 
-#include "mlir/IR/AsmState.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/Verifier.h"
-#include "mlir/Support/FileUtilities.h"
+#include "mlir/Pass/PassManager.h"
 
 int main(int argc, char** argv) {
   if (argc == 2) {
@@ -47,7 +46,23 @@ int main(int argc, char** argv) {
     return 1;
   }
   
-  std::cout << "\n=== MLIR ===\n";
+  std::cout << "\n=== MLIR (Before Shape Inference) ===\n";
+  module->print(llvm::outs());
+  std::cout << std::endl;
+  
+  // Create a pass manager and add the shape inference pass
+  mlir::PassManager pm(&context);
+  
+  // Since ShapeInferencePass operates on FuncOp, we need to use a nested pass manager
+  pm.addNestedPass<mlir::nn::FuncOp>(mlir::nn::createShapeInferencePass());
+  
+  // Run the shape inference pass
+  if (mlir::failed(pm.run(*module))) {
+    std::cerr << "Failed to run shape inference pass" << std::endl;
+    return 1;
+  }
+  
+  std::cout << "\n=== MLIR (After Shape Inference) ===\n";
   module->print(llvm::outs());
   std::cout << std::endl;
   

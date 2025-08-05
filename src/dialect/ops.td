@@ -119,7 +119,7 @@ def NN_Conv2DOp : NN_Op<"conv2d", [Pure, DeclareOpInterfaceMethods<ShapeInferenc
 // Activation Functions
 //===----------------------------------------------------------------------===//
 
-def NN_ReluOp : NN_Op<"relu", [Pure, SameOperandsAndResultShape]> {
+def NN_ReluOp : NN_Op<"relu", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "ReLU activation function";
     let description = [{
         Applies the ReLU (Rectified Linear Unit) activation function element-wise:
@@ -139,7 +139,7 @@ def NN_ReluOp : NN_Op<"relu", [Pure, SameOperandsAndResultShape]> {
     }];
 }
 
-def NN_SigmoidOp : NN_Op<"sigmoid", [Pure, SameOperandsAndResultShape]> {
+def NN_SigmoidOp : NN_Op<"sigmoid", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Sigmoid activation function";
     let description = [{
         Applies the sigmoid activation function element-wise:
@@ -159,7 +159,7 @@ def NN_SigmoidOp : NN_Op<"sigmoid", [Pure, SameOperandsAndResultShape]> {
     }];
 }
 
-def NN_TanhOp : NN_Op<"tanh", [Pure, SameOperandsAndResultShape]> {
+def NN_TanhOp : NN_Op<"tanh", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Tanh activation function";
     let description = [{
         Applies the hyperbolic tangent activation function element-wise:
@@ -179,7 +179,7 @@ def NN_TanhOp : NN_Op<"tanh", [Pure, SameOperandsAndResultShape]> {
     }];
 }
 
-def NN_SoftmaxOp : NN_Op<"softmax", [Pure, SameOperandsAndResultShape]> {
+def NN_SoftmaxOp : NN_Op<"softmax", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Softmax activation function";
     let description = [{
         Applies the softmax activation function along the last dimension:
@@ -241,7 +241,7 @@ def NN_MatmulOp : NN_Op<"matmul", [Pure, DeclareOpInterfaceMethods<ShapeInferenc
     }];
 }
 
-def NN_AddOp : NN_Op<"add", [Pure, Commutative, SameOperandsAndResultShape]> {
+def NN_AddOp : NN_Op<"add", [Pure, Commutative, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
   let summary = "Elementwise addition operation";
   let description = [{
     Performs elementwise addition of two tensors.
