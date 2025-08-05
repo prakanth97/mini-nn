@@ -283,6 +283,8 @@ private:
         return denseOp.getResult();
       }
     }
+
+    // TODO: Handle convolution layers.
     
     // Handle builtin activation functions
     if (call.isBuiltin) {

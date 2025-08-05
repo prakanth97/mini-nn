@@ -12,6 +12,7 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
+include "src/dialect/ShapeInferenceInterface.td"
 
 //===----------------------------------------------------------------------===//
 // NN Dialect Definition
@@ -40,7 +41,7 @@ class NN_Op<string mnemonic, list<Trait> traits = []> :
 // Layer Operations
 //===----------------------------------------------------------------------===//
 
-def NN_DenseOp : NN_Op<"dense", [Pure]> {
+def NN_DenseOp : NN_Op<"dense", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Dense/Fully connected layer operation";
     let description = [{
         Dense layer operation that performs matrix multiplication followed by bias addition:
@@ -64,7 +65,7 @@ def NN_DenseOp : NN_Op<"dense", [Pure]> {
     }];
 }
 
-def NN_Conv1DOp : NN_Op<"conv1d", [Pure]> {
+def NN_Conv1DOp : NN_Op<"conv1d", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "1D Convolution layer operation";
     let description = [{
         1D convolution operation for processing sequential data.
@@ -89,7 +90,7 @@ def NN_Conv1DOp : NN_Op<"conv1d", [Pure]> {
     }];
 }
 
-def NN_Conv2DOp : NN_Op<"conv2d", [Pure]> {
+def NN_Conv2DOp : NN_Op<"conv2d", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "2D Convolution layer operation";
     let description = [{
         2D convolution operation for processing image data.
@@ -202,7 +203,7 @@ def NN_SoftmaxOp : NN_Op<"softmax", [Pure, SameOperandsAndResultShape]> {
 // Utility Operations
 //===----------------------------------------------------------------------===//
 
-def NN_TransposeOp : NN_Op<"transpose", [Pure]> {
+def NN_TransposeOp : NN_Op<"transpose", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Matrix transpose operation";
     let description = [{
         Transposes the last two dimensions of a tensor.
@@ -221,7 +222,7 @@ def NN_TransposeOp : NN_Op<"transpose", [Pure]> {
     }];
 }
 
-def NN_MatmulOp : NN_Op<"matmul", [Pure]> {
+def NN_MatmulOp : NN_Op<"matmul", [Pure, DeclareOpInterfaceMethods<ShapeInferenceOpInterface>]> {
     let summary = "Matrix multiplication operation";
     let description = [{
         Performs matrix multiplication between two tensors.

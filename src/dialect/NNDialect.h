@@ -15,6 +15,7 @@
 #include "mlir/Bytecode/BytecodeOpInterface.h"
 #include "mlir/Bytecode/BytecodeReader.h"
 #include "mlir/Bytecode/BytecodeWriter.h"
+#include "ShapeInferenceInterface.h"
 
 namespace mlir {
 namespace nn {

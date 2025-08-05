@@ -79,6 +79,7 @@ add_executable(mini_nn
 
 # Add dialect library
 add_library(nn_dialect SHARED 
+    src/dialect/ShapeInferenceInterface.h
     src/dialect/NNDialect.h
     src/dialect/NNDialect.cpp
     src/dialect/ops.h.inc
