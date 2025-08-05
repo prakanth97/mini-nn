@@ -124,8 +124,7 @@ private:
 
   /// Emit a new function and add it to the MLIR module.
   mlir::nn::FuncOp mlirGen(FunctionDefinition &funcDef) {
-    // Create a scope in the symbol table to hold variable declarations.
-    ScopedHashTableScope<StringRef, mlir::Value> var_scope(symbolTable);
+    
 
     // Create the input types for the function.
     SmallVector<mlir::Type> argTypes;
@@ -173,6 +172,9 @@ private:
     // Create the function body
     auto &entryBlock = *function.addEntryBlock();
     builder.setInsertionPointToStart(&entryBlock);
+
+    // Create a scope in the symbol table to hold variable declarations.
+    ScopedHashTableScope<StringRef, mlir::Value> var_scope(symbolTable);
 
     // Declare the function arguments in the symbol table
     size_t paramIndex = 0;

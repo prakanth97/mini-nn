@@ -24,27 +24,27 @@ void NNDialect::initialize() {
       >();
 }
 
-// //===----------------------------------------------------------------------===//
-// // Type and Attribute parsing/printing (using defaults)
-// //===----------------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
+// Type and Attribute parsing/printing (using defaults)
+//===----------------------------------------------------------------------===//
 
-// mlir::Type NNDialect::parseType(mlir::DialectAsmParser &parser) const {
-//   // For now, just return nullptr as we don't have custom types
-//   return nullptr;
-// }
+mlir::Type NNDialect::parseType(mlir::DialectAsmParser &parser) const {
+  // For now, just return nullptr as we don't have custom types
+  return nullptr;
+}
 
-// void NNDialect::printType(mlir::Type type, mlir::DialectAsmPrinter &printer) const {
-//   // For now, do nothing as we don't have custom types
-// }
+void NNDialect::printType(mlir::Type type, mlir::DialectAsmPrinter &printer) const {
+  // For now, do nothing as we don't have custom types
+}
 
-// mlir::Attribute NNDialect::parseAttribute(mlir::DialectAsmParser &parser, mlir::Type type) const {
-//   // For now, just return nullptr as we don't have custom attributes
-//   return nullptr;
-// }
+mlir::Attribute NNDialect::parseAttribute(mlir::DialectAsmParser &parser, mlir::Type type) const {
+  // For now, just return nullptr as we don't have custom attributes
+  return nullptr;
+}
 
-// void NNDialect::printAttribute(mlir::Attribute attr, mlir::DialectAsmPrinter &printer) const {
-//   // For now, do nothing as we don't have custom attributes
-// }
+void NNDialect::printAttribute(mlir::Attribute attr, mlir::DialectAsmPrinter &printer) const {
+  // For now, do nothing as we don't have custom attributes
+}
 
-// #define GET_OP_CLASSES
-// #include "ops.cpp.inc"
+#define GET_OP_CLASSES
+#include "ops.cpp.inc"

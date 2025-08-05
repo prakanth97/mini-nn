@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find LLVM/MLIR installation
 # Allow override via environment variable or command line
 if(NOT DEFINED LLVM_ROOT)
-    message(STATUS, "LLVM_ROOT is not defined")
+    set(LLVM_ROOT "/Users/u5624836/Desktop/PhD/repos/llvm-project/build" 
+        CACHE PATH "Path to LLVM build directory")
 endif()
 
 set(LLVM_DIR "${LLVM_ROOT}/lib/cmake/llvm")
@@ -44,9 +45,11 @@ include(AddFileDependencies)
 # Define MLIR libraries that are commonly needed
 set(MLIR_LIBS
     MLIRAnalysis
+    MLIRArithDialect
     MLIRBuiltinToLLVMIRTranslation
     MLIRCallInterfaces
     MLIRCastInterfaces
+    MLIRDialect
     MLIRExecutionEngine
     MLIRFunctionInterfaces
     MLIRIR
@@ -59,6 +62,11 @@ set(MLIR_LIBS
     MLIRSupport
     MLIRTargetLLVMIRExport
     MLIRTransforms
+    MLIRTranslateLib
+    MLIRTableGen
+    MLIRTblgenLib
+    MLIRInferTypeOpInterface
+    MLIRSCFDialect
 )
 
 # Remove any potential duplicates
@@ -70,17 +78,20 @@ add_executable(mini_nn
 )
 
 # Add dialect library
-add_library(nn_dialect SHARED
-    src/dialect/nn_dialect.cpp
+add_library(nn_dialect SHARED 
+    src/dialect/NNDialect.h
+    src/dialect/NNDialect.cpp
+    src/dialect/ops.h.inc
+    src/dialect/ops.cpp.inc
+    src/dialect/dialect.h.inc
+    src/dialect/dialect.cpp.inc
+    src/dialect/MLIRGen.cpp
 )
 
 # Add parser library
-add_library(nn_parser SHARED
-    src/parser/lexer.h
+add_library(nn_parser SHARED 
     src/parser/lexer.cpp
-    src/parser/ast.h
     src/parser/ast.cpp
-    src/parser/parser.h
     src/parser/parser.cpp
 )
 
@@ -92,7 +103,7 @@ llvm_map_components_to_libnames(LLVM_LIBS
 )
 
 # Link libraries with proper dependency management
-target_link_libraries(nn_dialect ${MLIR_LIBS} ${LLVM_LIBS})
+target_link_libraries(nn_dialect nn_parser ${MLIR_LIBS} ${LLVM_LIBS})
 target_link_libraries(mini_nn nn_dialect nn_parser)
 
 # Add test executables

@@ -255,7 +255,9 @@ def NN_AddOp : NN_Op<"add", [Pure, Commutative, SameOperandsAndResultShape]> {
   let results = (outs AnyTensor:$result);
   
   let assemblyFormat = "$lhs `,` $rhs attr-dict `:` type($lhs) `,` type($rhs) `->` type($result)";
-}//===----------------------------------------------------------------------===//
+}
+
+//===----------------------------------------------------------------------===//
 // Function Operations
 //===----------------------------------------------------------------------===//
 
