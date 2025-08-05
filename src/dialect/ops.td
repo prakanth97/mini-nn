@@ -12,7 +12,7 @@ include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
 include "mlir/Interfaces/FunctionInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
-include "src/dialect/ShapeInferenceInterface.td"
+include "src/passes/ShapeInferenceInterface.td"
 
 //===----------------------------------------------------------------------===//
 // NN Dialect Definition

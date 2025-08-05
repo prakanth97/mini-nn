@@ -1,4 +1,4 @@
-#include "NNDialect.h"
+#include "../dialect/NNDialect.h"
 #include "Passes.h"
 #include "ShapeInferenceInterface.h"
 #include "mlir/Pass/Pass.h"

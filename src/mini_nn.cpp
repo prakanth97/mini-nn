@@ -5,7 +5,7 @@
 #include "parser/parser.h"
 #include "dialect/MLIRGen.h"
 #include "dialect/NNDialect.h"
-#include "dialect/Passes.h"
+#include "passes/Passes.h"
 
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"

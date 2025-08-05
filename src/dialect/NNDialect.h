@@ -13,7 +13,7 @@
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/Bytecode/BytecodeOpInterface.h"
-#include "ShapeInferenceInterface.h"
+#include "../passes/ShapeInferenceInterface.h"
 
 namespace mlir {
 namespace nn {

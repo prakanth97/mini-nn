@@ -79,16 +79,16 @@ add_executable(mini_nn
 
 # Add dialect library
 add_library(nn_dialect SHARED 
-    src/dialect/Passes.h
-    src/dialect/ShapeInferenceInterface.h
-    src/dialect/ShapeInferenceInterface.cpp
+    src/passes/Passes.h
+    src/passes/ShapeInferenceInterface.h
+    src/passes/ShapeInferenceInterface.cpp
     src/dialect/NNDialect.h
     src/dialect/NNDialect.cpp
     src/dialect/ops.h.inc
     src/dialect/ops.cpp.inc
     src/dialect/dialect.h.inc
     src/dialect/dialect.cpp.inc
-    src/dialect/ShapeInferencePass.cpp
+    src/passes/ShapeInferencePass.cpp
     src/dialect/MLIRGen.cpp
 )
 
