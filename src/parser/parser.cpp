@@ -2,9 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 
-void Parser::parseTopLevel() {
-  auto program = parseProgram();
-}
+void Parser::parseTopLevel() { auto program = parseProgram(); }
 
 std::unique_ptr<Program> Parser::parseProgram() {
   getNextToken(); // Initialize CurToken
@@ -195,13 +193,13 @@ std::unique_ptr<ReturnStatement> Parser::parseReturnStatement() {
 }
 
 std::unique_ptr<Expression> Parser::parseExpression() {
-	if (CurToken.type == INT_LIT) {
-		auto number = parseNumber();
-		return std::make_unique<NumberLiteral>(number->value, false);
-	} else if (CurToken.type == FLOAT_LIT) {
-		auto number = parseNumber();
-		return std::make_unique<NumberLiteral>(number->value, true);
-	} else if (CurToken.type == IDENT) {
+  if (CurToken.type == INT_LIT) {
+    auto number = parseNumber();
+    return std::make_unique<NumberLiteral>(number->value, false);
+  } else if (CurToken.type == FLOAT_LIT) {
+    auto number = parseNumber();
+    return std::make_unique<NumberLiteral>(number->value, true);
+  } else if (CurToken.type == IDENT) {
     std::string identifier = CurToken.getIdentifierStr();
     getNextToken();
     return parseExpressionSuffix(identifier);
@@ -222,7 +220,8 @@ std::unique_ptr<Expression> Parser::parseExpression() {
   }
 }
 
-std::unique_ptr<Expression> Parser::parseExpressionSuffix(const std::string &identifier) {
+std::unique_ptr<Expression>
+Parser::parseExpressionSuffix(const std::string &identifier) {
   if (CurToken.type == '(') {
     getNextToken(); // consume '('
 
@@ -237,7 +236,8 @@ std::unique_ptr<Expression> Parser::parseExpressionSuffix(const std::string &ide
   }
 }
 
-std::vector<std::pair<std::unique_ptr<Type>, std::string>> Parser::parseParameterList() {
+std::vector<std::pair<std::unique_ptr<Type>, std::string>>
+Parser::parseParameterList() {
   std::vector<std::pair<std::unique_ptr<Type>, std::string>> parameters;
 
   if (CurToken.type == INT_TOK || CurToken.type == FLOAT_TOK ||
@@ -300,9 +300,9 @@ void Parser::parseParameterListPrime(
 std::vector<std::unique_ptr<Expression>> Parser::parseArgumentList() {
   std::vector<std::unique_ptr<Expression>> arguments;
 
-	// TODO: This is wrong, arguments can int or identifier
-  if (CurToken.type == INT_LIT || CurToken.type == FLOAT_LIT 
-		|| CurToken.type == IDENT || CurToken.type == BUILTIN_FUNC_TOK) {
+  // TODO: This is wrong, arguments can int or identifier
+  if (CurToken.type == INT_LIT || CurToken.type == FLOAT_LIT ||
+      CurToken.type == IDENT || CurToken.type == BUILTIN_FUNC_TOK) {
     auto expr = parseExpression();
     if (expr) {
       arguments.push_back(std::move(expr));

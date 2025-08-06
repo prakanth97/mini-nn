@@ -89,7 +89,7 @@ TOKEN getTok() {
       columnNo++;
     }
 
-		return getKeywordOrIdentToken(); // Check if it's a keyword
+    return getKeywordOrIdentToken(); // Check if it's a keyword
   }
 
   if (LastChar == '=') {
@@ -135,16 +135,16 @@ TOKEN getTok() {
     columnNo++;
     return returnTok(",", COMMA);
   }
-	if (LastChar == '[') {
-		LastChar = getc(pFile);
-		columnNo++;
-		return returnTok("[", LBOX);
-	}
-	if (LastChar == ']') {
-		LastChar = getc(pFile);
-		columnNo++;
-		return returnTok("]", RBOX);
-	}
+  if (LastChar == '[') {
+    LastChar = getc(pFile);
+    columnNo++;
+    return returnTok("[", LBOX);
+  }
+  if (LastChar == ']') {
+    LastChar = getc(pFile);
+    columnNo++;
+    return returnTok("]", RBOX);
+  }
 
   if (isdigit(LastChar) || LastChar == '.') { // Number: [0-9]+.
     std::string NumStr;
@@ -181,15 +181,15 @@ TOKEN getTok() {
     }
   }
 
-	if (LastChar == '#') {
-		// Comment: #.*\n
-		do {
-			LastChar = getc(pFile);
-			columnNo++;
-		} while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
+  if (LastChar == '#') {
+    // Comment: #.*\n
+    do {
+      LastChar = getc(pFile);
+      columnNo++;
+    } while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
 
-		return getTok(); // Recurse to get the next token after the comment
-	}
+    return getTok(); // Recurse to get the next token after the comment
+  }
 
   // Check for end of file.  Don't eat the EOF.
   if (LastChar == EOF) {
@@ -206,41 +206,42 @@ TOKEN getTok() {
 }
 
 static bool isBuiltinFunc(const std::string &lexeme) {
-	return (lexeme == "bool" || lexeme == "int" || lexeme == "float" ||
-					lexeme == "void" || lexeme == "transpose" || lexeme == "matmul" ||
-					lexeme == "add" || lexeme == "relu" || lexeme == "sigmoid" ||
-					lexeme == "tanh" || lexeme == "softmax");
+  return (lexeme == "bool" || lexeme == "int" || lexeme == "float" ||
+          lexeme == "void" || lexeme == "transpose" || lexeme == "matmul" ||
+          lexeme == "add" || lexeme == "relu" || lexeme == "sigmoid" ||
+          lexeme == "tanh" || lexeme == "softmax");
 }
 
 static bool isLayerType(const std::string &lexeme) {
-	return (lexeme == "dense" || lexeme == "conv1d" || lexeme == "conv2d");
+  return (lexeme == "dense" || lexeme == "conv1d" || lexeme == "conv2d");
 }
 
-TOKEN getKeywordOrIdentToken() {	
+TOKEN getKeywordOrIdentToken() {
   if (globalLexeme == "func")
     return returnTok("func", FUNC_TOK);
-	if (globalLexeme == "int")
-		return returnTok("int", INT_TOK);
-	if (globalLexeme == "bool")
-		return returnTok("bool", BOOL_TOK);
-	if (globalLexeme == "float")
-		return returnTok("float", FLOAT_TOK);
-	if (globalLexeme == "void")
-		return returnTok("void", VOID_TOK);
-	if (globalLexeme == "bool")
-		return returnTok("bool", BOOL_TOK);
-	if (globalLexeme == "return")
-		return returnTok("return", RETURN);
-	if (globalLexeme == "true")
-		return returnTok("true", BOOL_LIT);
-	if (globalLexeme == "false") 	
-		return returnTok("false", BOOL_LIT);
-	if (globalLexeme == "layer")
-		return returnTok("layer", LAYER_TYPE_TOK);
-	if (isLayerType(globalLexeme))
-		return returnTok(globalLexeme.c_str(), LAYER_TOK);
-	if (isBuiltinFunc(globalLexeme))
-		return returnTok(globalLexeme.c_str(), BUILTIN_FUNC_TOK);
+  if (globalLexeme == "int")
+    return returnTok("int", INT_TOK);
+  if (globalLexeme == "bool")
+    return returnTok("bool", BOOL_TOK);
+  if (globalLexeme == "float")
+    return returnTok("float", FLOAT_TOK);
+  if (globalLexeme == "void")
+    return returnTok("void", VOID_TOK);
+  if (globalLexeme == "bool")
+    return returnTok("bool", BOOL_TOK);
+  if (globalLexeme == "return")
+    return returnTok("return", RETURN);
+  if (globalLexeme == "true")
+    return returnTok("true", BOOL_LIT);
+  if (globalLexeme == "false")
+    return returnTok("false", BOOL_LIT);
+  if (globalLexeme == "layer")
+    return returnTok("layer", LAYER_TYPE_TOK);
+  if (isLayerType(globalLexeme))
+    return returnTok(globalLexeme.c_str(), LAYER_TOK);
+  if (isBuiltinFunc(globalLexeme))
+    return returnTok(globalLexeme.c_str(), BUILTIN_FUNC_TOK);
 
-	return returnTok(globalLexeme.c_str(), IDENT); // If not a keyword, return as IDENT
+  return returnTok(globalLexeme.c_str(),
+                   IDENT); // If not a keyword, return as IDENT
 }
