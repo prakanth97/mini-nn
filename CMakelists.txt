@@ -8,8 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find LLVM/MLIR installation
 # Allow override via environment variable or command line
 if(NOT DEFINED LLVM_ROOT)
-    set(LLVM_ROOT "/Users/u5624836/Desktop/PhD/repos/llvm-project/build" 
-        CACHE PATH "Path to LLVM build directory")
+    message(STATUS, "LLVM_ROOT is not defined")
 endif()
 
 set(LLVM_DIR "${LLVM_ROOT}/lib/cmake/llvm")
@@ -46,31 +45,46 @@ include(AddFileDependencies)
 set(MLIR_LIBS
     MLIRAnalysis
     MLIRArithDialect
+    MLIRArithToLLVM
+    MLIRAffineDialect
+    MLIRBufferizationDialect
+    MLIRBufferizationToMemRef
+    MLIRBufferizationTransforms
     MLIRBuiltinToLLVMIRTranslation
     MLIRCallInterfaces
     MLIRCastInterfaces
+    MLIRControlFlowDialect
+    MLIRControlFlowToLLVM
     MLIRDialect
     MLIRExecutionEngine
+    MLIRFuncDialect
+    MLIRFuncToLLVM
     MLIRFunctionInterfaces
     MLIRIR
     MLIRLLVMCommonConversion
+    MLIRLLVMDialect
     MLIRLLVMToLLVMIRTranslation
+    MLIRLinalgDialect
+    MLIRLinalgToStandard
+    MLIRMathDialect
+    MLIRMathToLLVM
     MLIRMemRefDialect
+    MLIRMemRefToLLVM
+    MLIRMemRefTransforms
     MLIRParser
     MLIRPass
+    MLIRReconcileUnrealizedCasts
+    MLIRSCFDialect
+    MLIRSCFToControlFlow
     MLIRSideEffectInterfaces
     MLIRSupport
     MLIRTargetLLVMIRExport
+    MLIRTensorDialect
     MLIRTransforms
     MLIRTranslateLib
     MLIRTableGen
     MLIRTblgenLib
     MLIRInferTypeOpInterface
-    MLIRSCFDialect
-    MLIRLinalgDialect
-    MLIRTensorDialect
-    MLIRMathDialect
-    MLIRFuncDialect
 )
 
 # Remove any potential duplicates
