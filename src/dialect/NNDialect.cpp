@@ -204,12 +204,21 @@ void MatmulOp::inferShapes() {
   // RHS shape: [batch_size, n, p]
   // Output shape: [batch_size, m, p]
   
-  if (lhsShape.size() != 3 || rhsShape.size() != 3 || lhsShape[0] != rhsShape[0]) {
+  if (lhsShape.size() < 2 || rhsShape.size() < 2 || lhsShape[lhsShape.size() - 1] != rhsShape[rhsShape.size() - 2]) {
     return; // Invalid shapes, let the verifier handle this
   }
   
   // Create the output shape: [batch_size, m, p]
-  SmallVector<int64_t> outputShape = {lhsShape[0], lhsShape[1], rhsShape[2]};
+  auto frontElements = lhsShape.slice(0, lhsShape.size() - 2);
+  SmallVector<int64_t> outputShape;
+  if (frontElements.empty()) {
+    outputShape = {lhsShape[lhsShape.size() - 2], rhsShape[rhsShape.size() - 1]};
+  } else {
+    for (auto dim : frontElements) {
+      outputShape.push_back(dim);
+    }
+    outputShape = {lhsShape[lhsShape.size() - 2], rhsShape[rhsShape.size() - 1]};
+  }
   
   // Create the output tensor type
   auto elementType = lhsType.getElementType();

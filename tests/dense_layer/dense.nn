@@ -3,7 +3,7 @@
 layer dense1 = dense(10, 5);
 layer dense2 = dense(5, 1);
 
-func model(float[1][10] input) return float[1][5] {
+func model(float[1][10] input) return float[1][1] {
     y = dense1(input);
     y = relu(y);
     y = dense2(y);

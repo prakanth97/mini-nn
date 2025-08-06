@@ -273,27 +273,38 @@ struct SoftmaxOpLinalgLowering : public OpRewritePattern<SoftmaxOp> {
 };
 
 /// Lower nn.transpose to linalg.generic
-
 struct TransposeOpLinalgLowering : public OpRewritePattern<TransposeOp> {
 	using OpRewritePattern<TransposeOp>::OpRewritePattern;
 
 	LogicalResult matchAndRewrite(TransposeOp op, PatternRewriter &rewriter) const override {
 		Location loc = op.getLoc();
 		Value input = op.getInput();
+		auto inputType = mlir::cast<TensorType>(input.getType());
 		auto resultType = mlir::cast<TensorType>(op.getResult().getType());
 
 		// Create output tensor
 		Value output = rewriter.create<tensor::EmptyOp>(
 				loc, resultType.getShape(), resultType.getElementType());
 
-		// Create indexing maps (identity for both input and output)
-		AffineMap identityMap = AffineMap::getMultiDimIdentityMap(
-				resultType.getRank(), rewriter.getContext());
-		SmallVector<AffineMap> indexingMaps = {identityMap, identityMap};
+		// For transpose, we need to swap the last two dimensions
+		// Input indexing map: (d0, d1) -> (d0, d1) 
+		// Output indexing map: (d0, d1) -> (d1, d0) - this swaps the dimensions
+		MLIRContext *context = rewriter.getContext();
+		
+		if (inputType.getRank() != 2) {
+			return rewriter.notifyMatchFailure(op, "transpose only supports 2D tensors currently");
+		}
+		
+		AffineMap inputMap = AffineMap::get(2, 0, 
+			{rewriter.getAffineDimExpr(0), rewriter.getAffineDimExpr(1)}, context);
+		AffineMap outputMap = AffineMap::get(2, 0, 
+			{rewriter.getAffineDimExpr(1), rewriter.getAffineDimExpr(0)}, context);
+			
+		SmallVector<AffineMap> indexingMaps = {inputMap, outputMap};
 
 		// Create iterator types (all parallel)
-		SmallVector<utils::IteratorType> iteratorTypes(
-				resultType.getRank(), utils::IteratorType::parallel);
+		SmallVector<utils::IteratorType> iteratorTypes = {
+			utils::IteratorType::parallel, utils::IteratorType::parallel};
 
 		auto genericOp = createGenericOp(
 				rewriter, loc, {input}, {output}, indexingMaps, iteratorTypes,
@@ -332,7 +343,7 @@ struct MatmulOpLinalgLowering : public OpRewritePattern<MatmulOp> {
 	}
 };
 
-/// Lower nn.add to linalg.generic (element-wise addition)
+/// Lower nn.add to linalg.generic (element-wise addition with broadcasting support)
 struct AddOpLinalgLowering : public OpRewritePattern<AddOp> {
 	using OpRewritePattern<AddOp>::OpRewritePattern;
 
@@ -340,29 +351,61 @@ struct AddOpLinalgLowering : public OpRewritePattern<AddOp> {
 		Location loc = op.getLoc();
 		Value lhs = op.getLhs();
 		Value rhs = op.getRhs();
+		auto lhsType = mlir::cast<TensorType>(lhs.getType());
+		auto rhsType = mlir::cast<TensorType>(rhs.getType());
 		auto resultType = mlir::cast<TensorType>(op.getResult().getType());
 
 		// Create output tensor
 		Value output = rewriter.create<tensor::EmptyOp>(
 			loc, resultType.getShape(), resultType.getElementType());
 
-		// Create indexing maps (identity for all)
-		AffineMap identityMap = AffineMap::getMultiDimIdentityMap(
-			resultType.getRank(), rewriter.getContext());
-		SmallVector<AffineMap> indexingMaps = {identityMap, identityMap, identityMap};
+		MLIRContext *context = rewriter.getContext();
+		
+		// TODO : Handle this more generically, or have a sparate pass for broadcasting.
+		// Handle broadcasting case: [1x5] + [5] -> [1x5]
+		if (lhsType.getRank() == 2 && rhsType.getRank() == 1) {
+			// LHS: (d0, d1) -> (d0, d1)
+			// RHS: (d0, d1) -> (d1)  - broadcast along first dimension
+			// Result: (d0, d1) -> (d0, d1)
+			AffineMap lhsMap = AffineMap::getMultiDimIdentityMap(2, context);
+			AffineMap rhsMap = AffineMap::get(2, 0, {rewriter.getAffineDimExpr(1)}, context);
+			AffineMap resultMap = AffineMap::getMultiDimIdentityMap(2, context);
+			
+			SmallVector<AffineMap> indexingMaps = {lhsMap, rhsMap, resultMap};
+			SmallVector<utils::IteratorType> iteratorTypes = {
+				utils::IteratorType::parallel, utils::IteratorType::parallel};
 
-		// Create iterator types (all parallel)
-		SmallVector<utils::IteratorType> iteratorTypes(
-			resultType.getRank(), utils::IteratorType::parallel);
+			auto genericOp = createGenericOp(
+				rewriter, loc, {lhs, rhs}, {output}, indexingMaps, iteratorTypes,
+				[](OpBuilder &b, Location loc, ValueRange args) {
+					Value sum = b.create<arith::AddFOp>(loc, args[0], args[1]);
+					b.create<linalg::YieldOp>(loc, sum);
+				});
 
-		auto genericOp = createGenericOp(
-			rewriter, loc, {lhs, rhs}, {output}, indexingMaps, iteratorTypes,
-			[](OpBuilder &b, Location loc, ValueRange args) {
-				Value sum = b.create<arith::AddFOp>(loc, args[0], args[1]);
-				b.create<linalg::YieldOp>(loc, sum);
-			});
+			rewriter.replaceOp(op, genericOp.getResult(0));
+		}
+		else if (lhsType.getRank() == rhsType.getRank()) {
+			// Same rank - element-wise addition
+			AffineMap identityMap = AffineMap::getMultiDimIdentityMap(
+				resultType.getRank(), context);
+			SmallVector<AffineMap> indexingMaps = {identityMap, identityMap, identityMap};
 
-		rewriter.replaceOp(op, genericOp.getResult(0));
+			SmallVector<utils::IteratorType> iteratorTypes(
+				resultType.getRank(), utils::IteratorType::parallel);
+
+			auto genericOp = createGenericOp(
+				rewriter, loc, {lhs, rhs}, {output}, indexingMaps, iteratorTypes,
+				[](OpBuilder &b, Location loc, ValueRange args) {
+					Value sum = b.create<arith::AddFOp>(loc, args[0], args[1]);
+					b.create<linalg::YieldOp>(loc, sum);
+				});
+
+			rewriter.replaceOp(op, genericOp.getResult(0));
+		}
+		else {
+			return rewriter.notifyMatchFailure(op, "unsupported broadcasting pattern");
+		}
+
 		return success();
 	}
 };

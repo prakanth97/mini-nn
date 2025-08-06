@@ -307,6 +307,34 @@ private:
       } else if (call.functionName == "softmax") {
         auto softmaxOp = builder.create<mlir::nn::SoftmaxOp>(loc, input.getType(), input);
         return softmaxOp.getResult();
+      } else if (call.functionName == "add") {
+        if (call.arguments.size() < 2)
+          return nullptr;
+
+        auto lhs = mlirGen(*call.arguments[0]);
+        auto rhs = mlirGen(*call.arguments[1]);
+        if (!lhs || !rhs)
+          return nullptr;
+
+        auto addOp = builder.create<mlir::nn::AddOp>(loc, lhs.getType(), lhs, rhs);
+        return addOp.getResult();
+      } else if (call.functionName == "matmul") {
+        if (call.arguments.size() < 2)
+          return nullptr;
+
+        auto lhs = mlirGen(*call.arguments[0]);
+        auto rhs = mlirGen(*call.arguments[1]);
+        if (!lhs || !rhs)
+          return nullptr;
+
+        auto matmulOp = builder.create<mlir::nn::MatmulOp>(loc, lhs.getType(), lhs, rhs);
+        return matmulOp.getResult();
+      } else if (call.functionName == "transpose") {
+        if (call.arguments.empty())
+          return nullptr;
+        // Create transpose operation
+        auto transposeOp = builder.create<mlir::nn::TransposeOp>(loc, input.getType(), input);
+        return transposeOp.getResult();
       }
     }
 
