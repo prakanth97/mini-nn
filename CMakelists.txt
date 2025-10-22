@@ -117,7 +117,7 @@ add_library(nn_dialect SHARED
     src/dialect/dialect.cpp.inc
     src/passes/ShapeInferencePass.cpp
     src/passes/LowerToLinalgDialect.cpp
-    src/passes/LowerToAffineLoop.cpp
+    src/passes/LowerToLLVM.cpp
     src/dialect/MLIRGen.cpp
 )
 

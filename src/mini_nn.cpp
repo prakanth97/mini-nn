@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
   std::cout << "Saved Linalg IR to: " << linalg_file << std::endl;
 
   mlir::PassManager llvmPM(&context);
-  llvmPM.addPass(mlir::nn::createLowerToAffineLoopPass());
+  llvmPM.addPass(mlir::nn::createLowerToLLVMPass());
 
   // Run the LLVM lowering pass
   if (mlir::failed(llvmPM.run(*module))) {

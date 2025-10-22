@@ -50,9 +50,9 @@
 using namespace mlir;
 using namespace mlir::nn;
 
-struct LinalgToAffineLoopPass 
-  : public PassWrapper<LinalgToAffineLoopPass, OperationPass<ModuleOp>> {
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(LinalgToAffineLoopPass)
+struct LinalgToLLVMPass 
+  : public PassWrapper<LinalgToLLVMPass, OperationPass<ModuleOp>> {
+  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(LinalgToLLVMPass)
   
   void getDependentDialects(DialectRegistry &registry) const override {
     registry.insert<bufferization::BufferizationDialect,
@@ -134,19 +134,19 @@ struct LinalgToAffineLoopPass
  }
   
   llvm::StringRef getArgument() const override {
-    return "lower-to-affine-loops";
+    return "lower-to-llvm";
   }
 
   llvm::StringRef getDescription() const override {
-    return "Lower Linalg dialect to affine loops";
+    return "Lower Linalg dialect to llvm";
   }
 };
 
 namespace mlir {
 namespace nn {
 
-std::unique_ptr<mlir::Pass> createLowerToAffineLoopPass() {
-  return std::make_unique<LinalgToAffineLoopPass>();
+std::unique_ptr<mlir::Pass> createLowerToLLVMPass() {
+  return std::make_unique<LinalgToLLVMPass>();
 }
 
 }
