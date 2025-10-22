@@ -13,6 +13,7 @@
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/IR/Location.h"
 #include "mlir/IR/PatternMatch.h"
+#include "mlir/IR/ValueRange.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/DialectConversion.h"
 
@@ -87,6 +88,11 @@ struct DenseToLinalgLowering : public OpRewritePattern<DenseOp> {
             Value sum = b.create<arith::AddFOp>(loc, args[0], args[1]);
             b.create<linalg::YieldOp>(loc, sum);
           });
+
+      // Value biasOutput = rewriter.create<tensor::EmptyOp>(
+      //     loc, resultType.getShape(), resultType.getElementType());
+      // auto biasOp = rewriter.create<linalg::AddOp>(
+      //     loc, ValueRange{matmulResult, bias}, biasOutput);
 
       rewriter.replaceOp(op, biasOp.getResult(0));
     } else {
