@@ -145,6 +145,18 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::string llvm_file = location_prefix + base_filename + "_llvm.mlir";
+  llvm::raw_fd_ostream llvm_output(llvm_file, EC);
+  if (EC) {
+    std::cerr << "Failed to open file for writing: " << llvm_file
+              << std::endl;
+    return 1;
+  }
+
+  module->print(llvm_output);
+  llvm_output.close();
+  std::cout << "Saved LLVM IR to: " << llvm_file << std::endl;
+
   std::cout << "\n=== MLIR (After Lowering to Linalg) ===\n";
   module->print(llvm::outs());
   std::cout << std::endl;
