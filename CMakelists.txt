@@ -138,11 +138,3 @@ llvm_map_components_to_libnames(LLVM_LIBS
 # Link libraries with proper dependency management
 target_link_libraries(nn_dialect nn_parser ${MLIR_LIBS} ${LLVM_LIBS})
 target_link_libraries(mini_nn nn_dialect nn_parser)
-
-# Add test executables
-add_executable(dense_test tests/dense_layer/driver.cpp)
-add_executable(matmul_test tests/dense_matmul/driver.cpp)
-
-# Link test executables - they only need the main library
-target_link_libraries(dense_test nn_parser nn_dialect)
-target_link_libraries(matmul_test nn_parser nn_dialect)

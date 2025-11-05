@@ -95,6 +95,9 @@ struct LinalgToLLVMPass
     pm.nest<func::FuncOp>().addPass(bufferization::createBufferHoistingPass());
     pm.nest<func::FuncOp>().addPass(bufferization::createBufferLoopHoistingPass());
 
+    // 5) Convert buffer results to output parameters (module-level)
+    pm.addPass(bufferization::createBufferResultsToOutParamsPass());
+
     /////////// Affine Loops /////////////////
     pm.nest<func::FuncOp>().addPass(createConvertLinalgToAffineLoopsPass());
 
