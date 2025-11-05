@@ -118,6 +118,8 @@ add_library(nn_dialect SHARED
     src/passes/ShapeInferencePass.cpp
     src/passes/LowerToLinalgDialect.cpp
     src/passes/LowerToLLVM.cpp
+    src/passes/LowerLoopsToCPU.cpp
+    src/passes/LowerToLoops.cpp
     src/dialect/MLIRGen.cpp
 )
 

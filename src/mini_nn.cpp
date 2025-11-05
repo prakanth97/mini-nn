@@ -142,8 +142,35 @@ int main(int argc, char **argv) {
   linalg_output.close();
   std::cout << "Saved Linalg IR to: " << linalg_file << std::endl;
 
+  // mlir::PassManager llvmPM(&context);
+  // llvmPM.addPass(mlir::nn::createLowerToLLVMPass());
+  mlir::PassManager affinePM(&context);
+  affinePM.addPass(mlir::nn::createLowerToLoopsPass());
+
+  // Run the LLVM lowering pass
+  if (mlir::failed(affinePM.run(*module))) {
+    std::cerr << "Failed to run LLVM lowering pass" << std::endl;
+    return 1;
+  }
+
+  std::string affine_file = location_prefix + base_filename + "_affine.mlir";
+  llvm::raw_fd_ostream affine_output(affine_file, EC);
+  if (EC) {
+    std::cerr << "Failed to open file for writing: " << affine_file
+              << std::endl;
+    return 1;
+  }
+
+  module->print(affine_output);
+  affine_output.close();
+  std::cout << "Saved Affine IR to: " << affine_file << std::endl;
+
+  llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
+  module->print(llvm::outs());
+  llvm::outs() << "\n";
+
   mlir::PassManager llvmPM(&context);
-  llvmPM.addPass(mlir::nn::createLowerToLLVMPass());
+  llvmPM.addPass(mlir::nn::createLowerLoopsToCPUPass());
 
   // Run the LLVM lowering pass
   if (mlir::failed(llvmPM.run(*module))) {
@@ -161,7 +188,7 @@ int main(int argc, char **argv) {
 
   module->print(llvm_output);
   llvm_output.close();
-  std::cout << "Saved LLVM IR to: " << llvm_file << std::endl;
+  std::cout << "Saved Affine IR to: " << llvm_file << std::endl;
 
   llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
   module->print(llvm::outs());
