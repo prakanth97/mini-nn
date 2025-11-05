@@ -67,4 +67,7 @@ cmake -DLLVM_ENABLE_RTTI=ON ..
 make
 ```
 
-Execute -> `./build/mini_nn tests/dense_layer/dense.nn`
+### Build and Run Tests
+
+Run tests/test.sh
+Then Execute ./tests/dense_layer/dense_exe
