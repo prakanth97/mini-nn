@@ -38,6 +38,8 @@
 *.app
 *.o
 *.s
+*.ll
+*_exe
 
 # debug information files
 *.dwo

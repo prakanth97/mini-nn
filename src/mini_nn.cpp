@@ -1,10 +1,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Math/IR/Math.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
@@ -20,7 +22,10 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Pass/PassManager.h"
+#include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/raw_ostream.h"
+
+#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
 int main(int argc, char **argv) {
   if (argc == 2) {
@@ -80,6 +85,7 @@ int main(int argc, char **argv) {
   context.getOrLoadDialect<mlir::tensor::TensorDialect>();
   context.getOrLoadDialect<mlir::math::MathDialect>();
   context.getOrLoadDialect<mlir::func::FuncDialect>();
+  context.getOrLoadDialect<mlir::LLVM::LLVMDialect>();
 
   // Generate MLIR from AST
   auto module = mlir::nn::mlirGen(context, *program);
@@ -88,9 +94,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::cout << "\n=== MLIR (Before Shape Inference) ===\n";
+  llvm::outs() << "\n=== MLIR (Before Shape Inference) ===\n";
   module->print(llvm::outs());
-  std::cout << std::endl;
+  llvm::outs() << "\n";
 
   // Create a pass manager and add the shape inference pass
   mlir::PassManager pm(&context);
@@ -105,9 +111,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::cout << "\n=== MLIR (After Shape Inference) ===\n";
+  llvm::outs() << "\n=== MLIR (After Shape Inference) ===\n";
   module->print(llvm::outs());
-  std::cout << std::endl;
+  llvm::outs() << "\n";
 
   // Add lowering to Linalg pass
   mlir::PassManager loweringPM(&context);
@@ -119,9 +125,9 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::cout << "\n=== MLIR (After Lowering to Linalg) ===\n";
+  llvm::outs() << "\n=== MLIR (After Lowering to Linalg) ===\n";
   module->print(llvm::outs());
-  std::cout << std::endl;
+  llvm::outs() << "\n";
 
   // Save the Linalg IR to a file for external processing
   std::string linalg_file = location_prefix + base_filename + "_linalg.mlir";
@@ -157,9 +163,29 @@ int main(int argc, char **argv) {
   llvm_output.close();
   std::cout << "Saved LLVM IR to: " << llvm_file << std::endl;
 
-  std::cout << "\n=== MLIR (After Lowering to Linalg) ===\n";
+  llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
   module->print(llvm::outs());
-  std::cout << std::endl;
+  llvm::outs() << "\n";
+
+  // auto clonedModule = module->clone();
+  // llvm::LLVMContext llvmContext;
+  // std::unique_ptr<llvm::Module> llvmModule = mlir::translateModuleToLLVMIR(clonedModule, llvmContext);
+
+  // if (!llvmModule) {
+  //   std::cerr << "Failed to translate MLIR module to LLVM IR" << std::endl;
+  //   return 1;
+  // }
+
+  // std::string llc_file = location_prefix + base_filename + ".ll";
+  // llvm::raw_fd_ostream llc_output(llc_file, EC);
+  // if (EC) {
+  //   std::cerr << "Failed to open file for writing: " << llc_file 
+  //             << std::endl;
+  //   return 1;
+  // }
+
+  // llvmModule->print(llc_output, nullptr);
+  // llc_output.close();
 
   return 0;
 }
