@@ -28,14 +28,22 @@
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 
 int main(int argc, char **argv) {
+  std::string target_device = "cpu";
   if (argc == 2) {
     pFile = fopen(argv[1], "r");
     if (pFile == NULL)
       perror("Error opening file");
+  } else if (argc == 3) {
+    pFile = fopen(argv[1], "r");
+    if (pFile == NULL)
+      perror("Error opening file");
+    target_device = std::string(argv[2]);
   } else {
     std::cout << "Usage: ./mini_nn InputFile\n";
     return 1;
   }
+
+  llvm::outs() << "Target device: " << target_device << "\n";
 
   // Extract directory path from input file for output files
   std::string input_file_path(argv[1]);
@@ -170,7 +178,12 @@ int main(int argc, char **argv) {
   llvm::outs() << "\n";
 
   mlir::PassManager llvmPM(&context);
-  llvmPM.addPass(mlir::nn::createLowerLoopsToCPUPass());
+
+  if (target_device == "cpu") {
+    llvmPM.addPass(mlir::nn::createLowerLoopsToCPUPass());
+  } else {
+    llvmPM.addPass(mlir::nn::createLowerLoopsToGPUPass());
+  }
 
   // Run the LLVM lowering pass
   if (mlir::failed(llvmPM.run(*module))) {
@@ -193,26 +206,6 @@ int main(int argc, char **argv) {
   llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
   module->print(llvm::outs());
   llvm::outs() << "\n";
-
-  // auto clonedModule = module->clone();
-  // llvm::LLVMContext llvmContext;
-  // std::unique_ptr<llvm::Module> llvmModule = mlir::translateModuleToLLVMIR(clonedModule, llvmContext);
-
-  // if (!llvmModule) {
-  //   std::cerr << "Failed to translate MLIR module to LLVM IR" << std::endl;
-  //   return 1;
-  // }
-
-  // std::string llc_file = location_prefix + base_filename + ".ll";
-  // llvm::raw_fd_ostream llc_output(llc_file, EC);
-  // if (EC) {
-  //   std::cerr << "Failed to open file for writing: " << llc_file 
-  //             << std::endl;
-  //   return 1;
-  // }
-
-  // llvmModule->print(llc_output, nullptr);
-  // llc_output.close();
 
   return 0;
 }

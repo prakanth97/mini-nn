@@ -5,10 +5,13 @@ project(Mini-NN)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Disable RTTI to match LLVM/MLIR build configuration
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
 # Find LLVM/MLIR installation
 # Allow override via environment variable or command line
 if(NOT DEFINED LLVM_ROOT)
-    set(LLVM_ROOT "/Users/u5624836/Desktop/PhD/repos/llvm-project/build" 
+    set(LLVM_ROOT "/home/pt/warwick/cs325_demo/llvm-project/build" 
         CACHE PATH "Path to LLVM build directory")
 endif()
 
@@ -61,6 +64,11 @@ set(MLIR_LIBS
     MLIRFuncDialect
     MLIRFuncToLLVM
     MLIRFunctionInterfaces
+    MLIRGPUDialect
+    MLIRGPUToLLVMIRTranslation
+    MLIRGPUToNVVMTransforms
+    MLIRGPUTransforms
+    MLIRIndexToLLVM
     MLIRIR
     MLIRLLVMCommonConversion
     MLIRLLVMDialect
@@ -72,11 +80,15 @@ set(MLIR_LIBS
     MLIRMemRefDialect
     MLIRMemRefToLLVM
     MLIRMemRefTransforms
+    MLIRNVVMDialect
+    MLIRNVVMToLLVM
+    MLIRNVVMToLLVMIRTranslation
     MLIRParser
     MLIRPass
     MLIRReconcileUnrealizedCasts
     MLIRSCFDialect
     MLIRSCFToControlFlow
+    MLIRSCFToGPU
     MLIRSideEffectInterfaces
     MLIRSupport
     MLIRTargetLLVMIRExport
@@ -94,6 +106,8 @@ set(MLIR_LIBS
     MLIRSCFToOpenMP
     MLIROpenMPToLLVM
     MLIRConvertToLLVMPass
+    MLIRUBToLLVM
+    MLIRComplexToLLVM
 )
 
 # Remove any potential duplicates
@@ -119,6 +133,7 @@ add_library(nn_dialect SHARED
     src/passes/LowerToLinalgDialect.cpp
     src/passes/LowerToLLVM.cpp
     src/passes/LowerLoopsToCPU.cpp
+    src/passes/LowerLoopsToGPU.cpp
     src/passes/LowerToLoops.cpp
     src/dialect/MLIRGen.cpp
 )
