@@ -12,6 +12,7 @@
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "dialect/MLIRGen.h"
 #include "dialect/NNDialect.h"
+#include "mlir/IR/OwningOpRef.h"
 #include "parser/parser.h"
 #include "passes/Passes.h"
 
@@ -26,6 +27,15 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
+
+
+void printDebugInfo(std::string text, mlir::ModuleOp module) {
+#ifdef DEBUG_MODE
+  llvm::outs() << text;
+  module->print(llvm::outs());
+  llvm::outs() << "\n";
+#endif
+}
 
 int main(int argc, char **argv) {
   std::string target_device = "cpu";
@@ -64,10 +74,12 @@ int main(int argc, char **argv) {
     base_filename = base_filename.substr(0, dot_pos);
   }
 
+  #ifdef DEBUG_MODE
   std::cout << "Input file: " << input_file_path << std::endl;
   std::cout << "Output directory: "
             << (location_prefix.empty() ? "./" : location_prefix) << std::endl;
   std::cout << "Base filename: " << base_filename << std::endl;
+  #endif
 
   // Parse the input program
   Parser parser;
@@ -79,8 +91,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  #ifdef DEBUG_MODE
   std::cout << "=== AST ===\n";
   std::cout << program->toString() << std::endl;
+  #endif
 
   // Create MLIR context and register all necessary dialects
   mlir::MLIRContext context;
@@ -102,9 +116,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  llvm::outs() << "\n=== MLIR (Before Shape Inference) ===\n";
-  module->print(llvm::outs());
-  llvm::outs() << "\n";
+  printDebugInfo("\n=== MLIR (Before Shape Inference) ===\n", *module);
 
   // Create a pass manager and add the shape inference pass
   mlir::PassManager pm(&context);
@@ -119,9 +131,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  llvm::outs() << "\n=== MLIR (After Shape Inference) ===\n";
-  module->print(llvm::outs());
-  llvm::outs() << "\n";
+  printDebugInfo("\n=== MLIR (After Shape Inference) ===\n", *module);
 
   // Add lowering to Linalg pass
   mlir::PassManager loweringPM(&context);
@@ -133,9 +143,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  llvm::outs() << "\n=== MLIR (After Lowering to Linalg) ===\n";
-  module->print(llvm::outs());
-  llvm::outs() << "\n";
+  printDebugInfo("\n=== MLIR (After Lowering to Linalg) ===\n", *module);
 
   // Save the Linalg IR to a file for external processing
   std::string linalg_file = location_prefix + base_filename + "_linalg.mlir";
@@ -150,8 +158,6 @@ int main(int argc, char **argv) {
   linalg_output.close();
   std::cout << "Saved Linalg IR to: " << linalg_file << std::endl;
 
-  // mlir::PassManager llvmPM(&context);
-  // llvmPM.addPass(mlir::nn::createLowerToLLVMPass());
   mlir::PassManager affinePM(&context);
   affinePM.addPass(mlir::nn::createLowerToLoopsPass());
 
@@ -173,9 +179,7 @@ int main(int argc, char **argv) {
   affine_output.close();
   std::cout << "Saved Affine IR to: " << affine_file << std::endl;
 
-  llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
-  module->print(llvm::outs());
-  llvm::outs() << "\n";
+  printDebugInfo("\n=== MLIR (After Lowering to LLVM) ===\n", *module);
 
   mlir::PassManager llvmPM(&context);
 
@@ -203,9 +207,7 @@ int main(int argc, char **argv) {
   llvm_output.close();
   std::cout << "Saved Affine IR to: " << llvm_file << std::endl;
 
-  llvm::outs() << "\n=== MLIR (After Lowering to LLVM) ===\n";
-  module->print(llvm::outs());
-  llvm::outs() << "\n";
+  printDebugInfo("\n=== MLIR (After Lowering to LLVM) ===\n", *module);
 
   return 0;
 }

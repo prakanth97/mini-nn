@@ -15,9 +15,12 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/Verifier.h"
 #include "llvm/ADT/ScopedHashTable.h"
+#include "llvm/Support/Casting.h"
 
 using llvm::ScopedHashTableScope;
 using llvm::SmallVector;
+using llvm::dyn_cast;
+using llvm::isa;
 using llvm::StringRef;
 
 namespace {
@@ -50,14 +53,14 @@ public:
 
     // Process layer definitions first
     for (auto &stmt : program.statements) {
-      if (auto *layerDef = dynamic_cast<LayerDefinition *>(stmt.get())) {
+      if (auto *layerDef = dyn_cast<LayerDefinition>(stmt.get())) {
         layerMap[layerDef->name] = layerDef;
       }
     }
 
     // Process function definitions
     for (auto &stmt : program.statements) {
-      if (auto *funcDef = dynamic_cast<FunctionDefinition *>(stmt.get())) {
+      if (auto *funcDef = dyn_cast<FunctionDefinition>(stmt.get())) {
         mlir::nn::FuncOp func = mlirGen(*funcDef);
         if (!func)
           return nullptr;
@@ -106,9 +109,9 @@ private:
       // Get dimensions from layer parameters
       if (layerDef->parameters.size() >= 2) {
         auto *inputDim =
-            dynamic_cast<NumberLiteral *>(layerDef->parameters[0].get());
+            dyn_cast<NumberLiteral>(layerDef->parameters[0].get());
         auto *outputDim =
-            dynamic_cast<NumberLiteral *>(layerDef->parameters[1].get());
+            dyn_cast<NumberLiteral>(layerDef->parameters[1].get());
 
         if (inputDim && outputDim) {
           // Weight matrix: [input_dim, output_dim]
@@ -145,17 +148,17 @@ private:
     // function
     SmallVector<std::string> layerParamNames;
     for (auto &stmt : funcDef.body) {
-      if (auto *assign = dynamic_cast<Assignment *>(stmt.get())) {
-        if (auto *funcCall =
-                dynamic_cast<FunctionCall *>(assign->value.get())) {
+      if (auto *assign = dyn_cast<Assignment>(stmt.get())) {
+        if (auto *call =
+                dyn_cast<FunctionCall>(assign->value.get())) {
           // Check if this is a layer call
-          if (layerMap.find(funcCall->functionName) != layerMap.end()) {
-            LayerDefinition *layerDef = layerMap[funcCall->functionName];
+          if (layerMap.find(call->functionName) != layerMap.end()) {
+            LayerDefinition *layerDef = layerMap[call->functionName];
             auto layerTypes = getLayerParameterTypes(layerDef);
             for (size_t i = 0; i < layerTypes.size(); ++i) {
               argTypes.push_back(layerTypes[i]);
               argLocs.push_back(builder.getUnknownLoc());
-              layerParamNames.push_back(funcCall->functionName + "_param" +
+              layerParamNames.push_back(call->functionName + "_param" +
                                         std::to_string(i));
             }
           }
@@ -210,10 +213,10 @@ private:
 
   /// Emit a statement, this can be a return statement or an assignment.
   mlir::LogicalResult mlirGen(Statement &stmt) {
-    if (auto *ret = dynamic_cast<ReturnStatement *>(&stmt)) {
+    if (auto *ret = dyn_cast<ReturnStatement>(&stmt)) {
       return mlirGen(*ret);
     }
-    if (auto *assign = dynamic_cast<Assignment *>(&stmt)) {
+    if (auto *assign = dyn_cast<Assignment>(&stmt)) {
       return mlirGen(*assign);
     }
 
@@ -243,13 +246,13 @@ private:
 
   /// Emit an expression, returns the computed value.
   mlir::Value mlirGen(Expression &expr) {
-    if (auto *ident = dynamic_cast<Identifier *>(&expr)) {
+    if (auto *ident = dyn_cast<Identifier>(&expr)) {
       return mlirGen(*ident);
     }
-    if (auto *funcCall = dynamic_cast<FunctionCall *>(&expr)) {
+    if (auto *funcCall = dyn_cast<FunctionCall>(&expr)) {
       return mlirGen(*funcCall);
     }
-    if (auto *numLit = dynamic_cast<NumberLiteral *>(&expr)) {
+    if (auto *numLit = dyn_cast<NumberLiteral>(&expr)) {
       return mlirGen(*numLit);
     }
 
