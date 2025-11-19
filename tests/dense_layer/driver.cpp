@@ -73,6 +73,42 @@ void printMemRef(const MemRef2D& memref) {
   std::cout << std::endl;
 }
 
+float relu(float x) {
+  return x > 0.0f ? x : 0.0f;
+}
+
+float sigmoid(float x) {
+  return 1.0f / (1.0f + std::exp(-x));
+}
+
+float inference(
+  const std::vector<float>& input,
+  const std::vector<float>& w1,
+  const std::vector<float>& b1,
+  const std::vector<float>& w2,
+  const std::vector<float>& b2
+) {
+  // First layer
+  std::vector hidden(5, 0.0f);
+  for (int i = 0; i < 5; ++i) {
+    for (int j = 0; j < 10; ++j) {
+      hidden[i] += input[j] * w1[j* 5 + i];
+    }
+    hidden[i] += b1[i];
+    hidden[i] = relu(hidden[i]);
+  }
+
+  // Second layer
+  float output = 0.0f;
+  for (int i = 0; i < 5; ++i) {
+    output += hidden[i] * w2[i];
+  }
+  output += b2[0];
+  output = sigmoid(output);
+  return output;
+}
+
+
 //===----------------------------------------------------------------------===//
 // main
 //===----------------------------------------------------------------------===//
@@ -135,6 +171,12 @@ int main() {
     {output_strides[0], output_strides[1]}
   };
   printMemRef(result);
+  
+  // Validate the output
+  float actualVal = inference(input, w1, b1, w2, b2);
+  float diff = std::abs(actualVal - output[0]);
+  std::cout << "Validation: expected " << actualVal << ", got " << output[0]
+            << ", diff = " << diff << std::endl;
   
   return 0;
 }
