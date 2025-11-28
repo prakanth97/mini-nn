@@ -28,6 +28,7 @@
 #include "mlir/Conversion/ComplexToLLVM/ComplexToLLVM.h"
 
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/OpenMP/OpenMPDialect.h"
 #include "mlir/Dialect/Affine/Passes.h"
 #include "mlir/Dialect/Arith/Transforms/BufferizableOpInterfaceImpl.h"
@@ -123,6 +124,11 @@ struct LoopsToGPU
     pm.addPass(createParallelLoopToGpuPass());
     pm.addPass(createGpuKernelOutliningPass());
 
+    pm.addPass(createGPUHostRegister());
+
+    ConvertGpuOpsToNVVMOpsOptions gpuToNVVMOptions;
+    gpuToNVVMOptions.useBarePtrCallConv = false;
+    gpuToNVVMOptions.indexBitwidth = 64;
     pm.nest<gpu::GPUModuleOp>().addPass(createConvertGpuOpsToNVVMOps());
     GpuNVVMAttachTargetOptions gputargetOptions;
     gputargetOptions.chip = "sm_90";
@@ -133,17 +139,13 @@ struct LoopsToGPU
     pm.addPass(createConvertSCFToCFPass());
     pm.addPass(createLowerAffinePass()); // Removed the unrealized casts in gpu kernels
     pm.addPass(createArithToLLVMConversionPass());
+
     ConvertIndexToLLVMPassOptions indexToLLVMOptions;
-    indexToLLVMOptions.indexBitwidth = 32;
+    indexToLLVMOptions.indexBitwidth = 64;
     pm.addPass(createConvertIndexToLLVMPass(indexToLLVMOptions));
+
     pm.addPass(createUBToLLVMConversionPass());
-
-    // MemRef/struct handling: expand metadata, finalize memref->llvm
     pm.addPass(memref::createExpandStridedMetadataPass());
-    pm.addPass(createFinalizeMemRefToLLVMConversionPass());
-
-    pm.addPass(createReconcileUnrealizedCastsPass());
-    pm.addPass(createConvertFuncToLLVMPass());
 
     // Convert device NVVM intrinsics to LLVM IR (device side)
     pm.addPass(createConvertNVVMToLLVMPass());
@@ -152,14 +154,20 @@ struct LoopsToGPU
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());
 
-
     // --- Serialize GPU module to binary (PTX/ELF blob) ---
     pm.addPass(createGpuModuleToBinaryPass());
 
-    pm.addPass(createGpuToLLVMConversionPass());
+    GpuToLLVMConversionPassOptions gpuToLLVMOptions;
+    gpuToLLVMOptions.kernelBarePtrCallConv = false;
+    gpuToLLVMOptions.hostBarePtrCallConv = false;
+    pm.addPass(createGpuToLLVMConversionPass(gpuToLLVMOptions));
     
-    // // Convert control-flow to LLVM (host CF)
+    pm.addPass(createFinalizeMemRefToLLVMConversionPass());
+
+    pm.addPass(createConvertFuncToLLVMPass());
     pm.addPass(createConvertControlFlowToLLVMPass());
+
+    pm.addPass(createReconcileUnrealizedCastsPass());
 
     pm.addPass(createCanonicalizerPass());
     pm.addPass(createCSEPass());

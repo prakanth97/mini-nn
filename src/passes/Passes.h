@@ -21,6 +21,7 @@ std::unique_ptr<mlir::Pass> createLowerLoopsToCPUPass();
 std::unique_ptr<mlir::Pass> createLowerLoopsToGPUPass();
 std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
 std::unique_ptr<mlir::Pass> createGPUMemoryTransferPass();
+std::unique_ptr<mlir::Pass> createGPUHostRegister();
 
 } // namespace nn
 } // namespace mlir
