@@ -15,6 +15,12 @@ class GPUMemoryTransfer : public PassWrapper<GPUMemoryTransfer, OperationPass<Mo
 public:
   MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(GPUMemoryTransfer)
 
+  void getDependentDialects(DialectRegistry &registry) const override {
+    registry.insert<memref::MemRefDialect>();
+    registry.insert<gpu::GPUDialect>();
+    registry.insert<arith::ArithDialect>();
+  }
+
   void runOnOperation() override {
     ModuleOp module = getOperation();
     SymbolTable symbolTable(module);
@@ -30,8 +36,7 @@ public:
       unsigned numKernelOperands = launchOp.getNumKernelOperands();
       unsigned kernelArgsStart = totalOperands - numKernelOperands;
 
-      // We need to track which argument indices we changed to Space 1
-      // so we can update the kernel signature later.
+      // Track changed indices to update kernel signature. 
       llvm::SmallVector<unsigned, 4> changedIndices;
 
       for (unsigned i = 0; i < numKernelOperands; ++i) {
@@ -73,22 +78,21 @@ public:
               dynamicSizes, ValueRange{}, false);
 
           // Memcpy
-          Value devicePtr = deviceAlloc.getResult(0);
+          finalOperand = deviceAlloc.getResult(0);
           builder.create<gpu::MemcpyOp>(
-              launchOp.getLoc(), std::nullopt, ValueRange{}, devicePtr, operand);
+              launchOp.getLoc(), std::nullopt, ValueRange{}, finalOperand, operand);
 
           // Cast to Strided (Space 1)
-          auto targetKernelType = MemRefType::get(
-              hostMemRefType.getShape(),
-              hostMemRefType.getElementType(),
-              hostMemRefType.getLayout(), 
-              builder.getI64IntegerAttr(1));
+          // auto targetKernelType = MemRefType::get(
+          //     hostMemRefType.getShape(),
+          //     hostMemRefType.getElementType(),
+          //     hostMemRefType.getLayout(), 
+          //     builder.getI64IntegerAttr(1));
 
-          finalOperand = devicePtr;
-          if (deviceAllocType != targetKernelType) {
-            finalOperand = builder.create<memref::CastOp>(
-                launchOp.getLoc(), targetKernelType, devicePtr);
-          }
+          // if (deviceAllocType != targetKernelType) {
+          //   finalOperand = builder.create<memref::CastOp>(
+          //       launchOp.getLoc(), targetKernelType, devicePtr);
+          // }
 
           hostToDeviceMap[operand] = finalOperand;
         }
@@ -113,12 +117,14 @@ public:
         for (unsigned idx : changedIndices) {
           // Get the current type (which is Space 0)
           auto oldType = newInputTypes[idx].cast<MemRefType>();
+
+          auto identityMap = builder.getMultiDimIdentityMap(oldType.getRank());
           
           // Create the new type (Space 1, same layout)
           auto newType = MemRefType::get(
               oldType.getShape(),
               oldType.getElementType(),
-              oldType.getLayout(),
+              AffineMapAttr::get(identityMap),
               builder.getI64IntegerAttr(1));
 
           newInputTypes[idx] = newType;
