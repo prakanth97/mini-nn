@@ -130,6 +130,7 @@ add_library(nn_dialect SHARED
     src/dialect/dialect.h.inc
     src/dialect/dialect.cpp.inc
     src/passes/ShapeInferencePass.cpp
+    src/passes/GPUMemoryTransfer.cpp
     src/passes/LowerToLinalgDialect.cpp
     src/passes/LowerToLLVM.cpp
     src/passes/LowerLoopsToCPU.cpp
